@@ -13,3 +13,6 @@ outputs/
 *.pkl
 *.joblib
 .DS_Store
+experimentos_suspensos/
+models/sts/
+models/demo/

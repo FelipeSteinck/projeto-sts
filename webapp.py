@@ -4,7 +4,6 @@ from __future__ import annotations
 import asyncio
 import csv
 import io
-import math
 import threading
 import time
 import uuid
@@ -18,11 +17,15 @@ from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from src.nucleo import Calibracao, FiltroPosturaEstavel, Postura, RastreadorRepeticoes, SuavizadorMetricas, finalizar_calibracao
+from src.nucleo import finalizar_calibracao
 from src.aplicacao import extrair_metricas_corpo
+from src.atributos import SCHEMA, raw_columns, signed_angle
+from src.modelos import ModeloSTS, model_catalog
+from src.motor import MotorSTS
 
 ROOT = Path(__file__).resolve().parent
 MODEL = ROOT / 'models/pose_landmarker_lite.task'
+MODELS_DIR = ROOT / 'models'
 app = FastAPI(title='Monitor STS', docs_url=None, redoc_url=None)
 app.mount('/static', StaticFiles(directory=ROOT / 'web'), name='static')
 SESSIONS: dict[str, Session] = {}
@@ -34,24 +37,26 @@ class SessionConfig(BaseModel):
     alpha: float = Field(default=0.25, gt=0, le=1)
     stable_frames: int = Field(default=3, ge=1, le=30)
     mirrored: bool = False
-
-
-def signed_angle(a, b, c):
-    """Graus orientados em coordenadas de imagem (y crescente para baixo)."""
-    u, v = (a[0]-b[0], a[1]-b[1]), (c[0]-b[0], c[1]-b[1])
-    if math.hypot(*u) == 0 or math.hypot(*v) == 0:
-        raise ValueError('Vetor nulo')
-    return math.degrees(math.atan2(u[0]*v[1]-u[1]*v[0], u[0]*v[0]+u[1]*v[1]))
+    method: str = Field(default='regras', pattern='^(regras|sts/logistica|sts/floresta|demo/logistica|demo/floresta)$')
+    session_id: str = Field(default='S01',pattern='^[A-Za-z0-9_-]{1,40}$')
+    participant_id: str = Field(default='P01',pattern='^[A-Za-z0-9_-]{1,40}$')
 
 
 class Session:
     def __init__(self, config):
         self.config = config
         self.lock = threading.Lock()
-        self.calibration = Calibracao()
-        self.smoother = SuavizadorMetricas(config.alpha)
-        self.filter = FiltroPosturaEstavel(config.stable_frames)
-        self.tracker = RastreadorRepeticoes()
+        classifier=None
+        if config.method != 'regras':
+            classifier=ModeloSTS.load(MODELS_DIR/f'{config.method}.json')
+            expected_kind='sintetico' if config.method.startswith('demo/') else 'real'
+            if classifier.artifact['tipo_dados'] != expected_kind:
+                raise ValueError('Modelo com tipo de dados incorreto.')
+            if config.alpha != classifier.artifact['alpha'] or config.stable_frames != classifier.artifact['stable_frames']:
+                raise ValueError('Use alfa e estabilidade registrados no modelo treinado.')
+        self.engine=MotorSTS(config.alpha,config.stable_frames,model=classifier)
+        self.calibration=self.engine.calibration
+        self.tracker=self.engine.tracker
         self.rows = []
         self.last_metrics = None
         self.pending = {}
@@ -93,42 +98,28 @@ class Session:
         result = self.landmarker.detect_for_video(mp.Image(image_format=mp.ImageFormat.SRGB, data=cv2.cvtColor(image, cv2.COLOR_BGR2RGB)), timestamp_ms)
         self.last_ms = timestamp_ms
         self.last_metrics = None
-        raw = smooth = None
-        posture = stable = Postura.DESCONHECIDA
-        event = ''
-        signed_knee = signed_hip = None
+        raw = None
         quality = 'SEM POSTURA'
         if result.pose_landmarks:
-            raw, _, _ = extrair_metricas_corpo(result.pose_landmarks[0], w, h, 0.60)
-        if raw is not None:
-            if self.side is not None and self.side != raw.lado:
-                self.smoother.reiniciar()
-                self.filter.reiniciar()
-            self.side = raw.lado
-            p = raw.pontos
-            signed_knee = signed_angle(p['quadril'], p['joelho'], p['tornozelo'])
-            signed_hip = signed_angle(p['ombro'], p['quadril'], p['joelho'])
-            smooth = self.smoother.atualizar(raw)
-            self.last_metrics = smooth
-            posture = self.calibration.classificar(smooth.angulo_joelho, smooth.angulo_quadril)
-            stable = self.filter.atualizar(posture)
-            feedback, event = self.tracker.atualizar(stable, timestamp_ms/1000)
-            quality = 'POSTURA COMPLETA'
-        else:
-            if result.pose_landmarks:
-                quality = 'POSTURA PARCIAL'
-            feedback, event = self.tracker.registrar_ausencia()
-            if self.tracker.quadros_ausentes >= 15:
-                self.smoother.reiniciar()
-                self.filter.reiniciar()
+            try: raw, _, _ = extrair_metricas_corpo(result.pose_landmarks[0], w, h, 0.60)
+            except ValueError: pass
+        processed=self.engine.update(raw,timestamp_ms/1000)
+        smooth=processed['smooth']
+        self.last_metrics=smooth
+        posture,stable=processed['posture'],processed['stable']
+        event,feedback=processed['event'],processed['feedback']
+        quality='POSTURA COMPLETA' if raw else 'POSTURA PARCIAL' if result.pose_landmarks else 'SEM POSTURA'
         processing = round((time.perf_counter()-started)*1000, 2)
-        row = dict(quadro=len(self.rows)+1, tempo_fonte_s=timestamp_ms/1000,
+        row = dict(schema_atributos=SCHEMA,tipo_dados='real',sessao=self.config.session_id,
+                   participante=self.config.participant_id,metodo=self.config.method,
+                   tipo_modelo=self.engine.model.artifact['tipo_dados'] if self.engine.model else 'regras',
+                   quadro=len(self.rows)+1, tempo_fonte_s=timestamp_ms/1000,
                    fonte=self.config.source, espelhado=self.config.mirrored,
                    alfa=self.config.alpha, quadros_estaveis=self.config.stable_frames,
-                   lado=raw.lado if raw else '', visibilidade=raw.visibilidade if raw else '',
-                   joelho_bruto=raw.angulo_joelho if raw else '', quadril_bruto=raw.angulo_quadril if raw else '',
-                   joelho_orientado=signed_knee, quadril_orientado=signed_hip,
-                   joelho_ema=smooth.angulo_joelho if smooth else '', quadril_ema=smooth.angulo_quadril if smooth else '',
+                   **raw_columns(raw),**processed['oriented'],**processed['features'],
+                   postura_regras=processed['rule_stable'].value,
+                   repeticoes_regras=self.engine.rule_tracker.repeticoes,
+                   pontuacao_modelo=processed['confidence'],calibrado=self.calibration.esta_calibrada,
                    postura_antes_estabilidade=posture.value, postura_estavel=stable.value,
                    fase=self.tracker.fase.value, repeticoes=self.tracker.repeticoes,
                    incompletas=self.tracker.tentativas_incompletas, canceladas=self.tracker.ciclos_cancelados,
@@ -137,6 +128,8 @@ class Session:
         return dict(quality=quality, phase=self.tracker.fase.value, repetitions=self.tracker.repeticoes,
                     incomplete=self.tracker.tentativas_incompletas, cancelled=self.tracker.ciclos_cancelados,
                     calibrated=self.calibration.esta_calibrada, feedback=feedback, processing_ms=processing,
+                    method=self.config.method,model_kind=self.engine.model.artifact['tipo_dados'] if self.engine.model else 'regras',
+                    model_score=processed['confidence'],rule_repetitions=self.engine.rule_tracker.repeticoes,
                     metrics=asdict(smooth) if smooth else None,
                     landmarks=[{'x':p.x,'y':p.y,'visibility':p.visibility} for p in result.pose_landmarks[0]] if result.pose_landmarks else [])
 
@@ -159,13 +152,23 @@ def health():
     return {'status':'ok', 'model_ready':MODEL.exists(), 'method':'regras geométricas', 'clinical_validation':False}
 
 
+@app.get('/api/models')
+def available_models():
+    return {'models':model_catalog(MODELS_DIR)}
+
+
 @app.post('/api/sessions')
 def new_session(config: SessionConfig):
     with SESSIONS_LOCK:
         if len(SESSIONS) >= 32:
             raise HTTPException(409, 'Exporte os CSVs e reinicie o servidor para iniciar outras sessões.')
         sid = uuid.uuid4().hex
-        SESSIONS[sid] = Session(config)
+        try:
+            SESSIONS[sid] = Session(config)
+        except FileNotFoundError as exc:
+            raise HTTPException(409,'Modelo indisponível. Execute o treinamento antes de selecioná-lo.') from exc
+        except ValueError as exc:
+            raise HTTPException(422,str(exc)) from exc
     return {'id':sid}
 
 
@@ -206,9 +209,8 @@ def calibrate(sid: str, posture: str):
             if calibration is None:
                 raise HTTPException(422, 'Amplitude insuficiente. Registre novamente as duas posturas.')
             session.calibration = calibration
-            session.smoother.reiniciar()
-            session.filter.reiniciar()
-            session.tracker.reiniciar()
+            session.engine.calibration=calibration
+            session.engine.reset()
         return {'calibrated':session.calibration.esta_calibrada,'registered':posture}
 
 
@@ -218,6 +220,24 @@ def stop(sid: str):
     with session.lock:
         session.close()
     return {'status':'stopped'}
+
+
+@app.get('/api/sessions/{sid}/config')
+def download_config(sid: str):
+    session=get_session(sid)
+    with session.lock:
+        if not session.calibration.esta_calibrada:
+            raise HTTPException(409,'Registre as duas posturas antes de exportar a calibração.')
+        import json
+        content=json.dumps(dict(schema=SCHEMA,config=session.config.model_dump(),
+            calibracao=asdict(session.calibration)),ensure_ascii=False,indent=2)
+    return Response(content,media_type='application/json',headers={
+        'Content-Disposition':f'attachment; filename="calibracao_{session.config.session_id}.json"'})
+
+
+@app.get('/rotular')
+def annotation_page():
+    return FileResponse(ROOT/'web/rotular.html')
 
 
 @app.get('/api/sessions/{sid}/csv')
