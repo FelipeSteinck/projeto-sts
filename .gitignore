@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+.env
+models/*.task
+data/*.json
+data/videos/
+data/labels/
+outputs/
+*.csv
+*.mp4
+*.pkl
+*.joblib
+.DS_Store

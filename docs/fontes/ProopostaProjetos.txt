@@ -1,0 +1,20 @@
+
+--- PAGINA 1 ---
+EEL7825 - Orientações Para as Propostas de Projeto
+Recomendo que as propostas de projeto sejam discutidas com o professor via chat, vídeo 
+conferência e/ou e-mail antes de serem elaboradas no seguinte formato e submetidas como tarefa 
+no Moodle.
+Formato da proposta:
+– Seção de Título e Equipe: Título e descrição da equipe e responsabilidades de cada um. 
+– Seção de Introdução: Contextualizar o problema ou aplicação e discutir sua relevância.
+– Seção de Objetivos: Descrever com clareza os objetivos, metas e resultados esperados.
+– Seção de Métodos: Descrever quais métodos existem na literatura e qual será a metodologia, 
+abordagem e técnicas. 
+– Seção de Materiais e Ferramentas: Descrever os banco de dados, fonte de imagens, como serão 
+adquiridas e/ou rotuladas as imagens (se for o caso). Descrever quais bibliotecas, funções, recursos 
+de hardware (se for o caso, como kits, câmeras, componentes) e em que estágio se encontram: 
+instaladas, adquiridas ou em processo de aquisição/recebimento.
+– Seção de Cronograma: Descrever as etapas e datas esperadas de conclusão de cada etapa.
+Após consulta e discussão com o professor, a proposta deverá ser incluída em arquivo PDF em 
+Tarefa do Moodle (por todos os componentes da equipe) intitulada “Submissão de Propostas de 
+Projeto”, com data prevista de entrega informada pelo professor. 

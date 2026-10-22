@@ -1,0 +1,243 @@
+
+--- PAGINA 1 ---
+Universidade Federal de Santa
+Catarina
+Centro Tecnológico
+Departamento de Engenharia Elétrica e
+Eletrônica
+PROPOSTA DE PROJETO
+PROCESSAMENTO DE IMAGENS — PROJETO NÍVEL I
+Reconhecimento e Contagem Automática do
+Movimento de Sentar e Levantar comEstimação de Pose e Aprendizado
+Supervisionado
+Luiz Felipe Steinck Matrícula: 19100418
+Luis Felipe Candido Sola Matrícula: 22250296
+Professor responsável
+Prof. Joceli Mayer
+Florianópolis
+2026
+
+--- PAGINA 2 ---
+UFSC · CTC · EEL Proposta de Projeto
+1. Título e equipe
+Título: Reconhecimento e Contagem Automática do Movimento de Sentar e Levantar com
+Estimação de Pose e Aprendizado Supervisionado
+Escopo em uma frase:desenvolver e avaliar um protótipo em português que reconheça as
+fases do movimento de sentar e levantar, conte somente ciclos completos e registre resultados
+mensuráveis em tempo real.
+O trabalho será desenvolvido em dupla. A divisão abaixo estabelece responsáveis principais, sem
+impedir revisão cruzada e colaboração nas decisões técnicas.
+Integrante Matrícula Responsabilidades principais
+Luiz Felipe Steinck 19100418 Integração OpenCV–MediaPipe, método geométrico de
+referência, interface em português, execução em tempo
+real e registro em CSV.
+Luis Felipe Candido Sola 22250296 Protocolo de aquisição e rotulagem, preparação dos
+atributos, treinamento supervisionado, métricas e análise
+dos experimentos.
+Ambos — Definição metodológica, integração final, testes,
+interpretação dos resultados, redação do relatório e
+apresentação.
+2. Introdução
+O movimento de sentar e levantar está presente em atividades cotidianas e envolve coordenação entre
+tronco e membros inferiores. Sua execução apresenta variações de velocidade, amplitude, proporção
+corporal, enquadramento e iluminação. Essas condições fazem do movimento um caso adequado
+para estudar processamento de vídeo, extração de características, classificação de padrões e análise
+temporal. A literatura também reconhece o movimento como uma tarefa funcional relevante, embora
+sua interpretação clínica dependa de protocolo e supervisão profissional [6].
+A estimação de pose permite representar o corpo por pontos anatômicos em vez de processar
+diretamente todos os pixels. O MediaPipe Pose Landmarker fornece 33 marcos corporais e foi
+projetado para aplicações em tempo real, inclusive atividades físicas [1, 4]. A partir desses marcos,
+é possível calcular ângulos, posições normalizadas e variações ao longo do tempo.
+O projeto parte de um protótipo já funcional, capaz de acessar a webcam, estimar a pose, calcular
+ângulos, calibrar as posturas sentada e em pé, reconhecer fases por regras geométricas, contar ciclos
+completos e gravar dados em CSV. A proposta amplia essa base com um classificador supervisionado,
+um protocolo de avaliação quantitativa e uma interface visual mais clara em português. O repositório
+de Guarnizo [5] será usado apenas como referência prática de organização de uma aplicação de
+análise de exercícios; o código, os experimentos e a avaliação deste trabalho serão próprios.
+Delimitação: trata-se de um protótipo acadêmico de visão computacional. O sistema não
+fará diagnóstico, prescrição de exercício, avaliação de dor ou validação clínica de postura.
+3. Objetivos
+3.1 Objetivo geral
+Desenvolver e avaliar um sistema de visão computacional que reconheça as fases do movimento de
+sentar e levantar e contabilize repetições completas a partir de vídeo de uma webcam comum.
+Steinck e Sola · 2026 Página 1 de 6
+
+--- PAGINA 3 ---
+UFSC · CTC · EEL Proposta de Projeto
+3.2 Objetivos específicos
+• adquirir vídeo e estimar, em tempo real, os marcos de ombro, quadril, joelho e tornozelo;
+• extrair atributos geométricos e temporais independentes da resolução da imagem;
+• manter um método geométrico calibrável como referência de comparação;
+• treinar e comparar classificadores supervisionados para as classesSENTADO, TRANSIÇÃO e EM PÉ ;
+• usar uma máquina de estados para distinguir levantar de sentar e contar somente o ciclo completo
+sentado → em pé → sentado;
+• melhorar a interface em português, com informações objetivas sobre enquadramento, fase,
+repetição e perda de rastreamento;
+• medir a qualidade da classificação, o erro de contagem e o desempenho computacional.
+3.3 Metas e resultados esperados
+As metas técnicas são processar ao menos 15 quadros por segundo em computador convencional;
+obter F1 macro igual ou superior a 0,85 para as três fases em sessões controladas; e alcançar erro
+absoluto médio de, no máximo, uma repetição a cada sequência de dez movimentos. Esses valores
+são metas de engenharia, não resultados antecipados. Caso não sejam atingidos, os erros serão
+documentados e analisados.
+Como resultados, espera-se entregar o programa executável, um conjunto interno de vídeos e rótulos,
+arquivos de configuração, registros CSV, gráficos de avaliação, demonstração ao vivo e relatório
+com comparação entre os métodos.
+4. Métodos
+4.1 Fluxo proposto
+Aquisição pela webcam e pré-processamento com OpenCV
+MediaPipe Pose Landmarker: 33 marcos corporais e medidas de visibilidade
+Atributos: ângulos orientados, altura normalizada do quadril e variações temporais
+Classificação da fase: regras geométricasversus aprendizado supervisionado
+Filtro temporal e máquina de estados: contagem, interface e registro CSV
+Figura 1: Fluxo de processamento e avaliação do sistema proposto.
+Cada quadro será convertido de BGR para RGB com OpenCV [2] e enviado ao estimador de pose.
+O lado corporal com maior visibilidade será selecionado para reduzir falhas por oclusão. Para
+preservar a orientação geométrica no plano da imagem, o ângulo associado a três pontosA, B e C,
+com vértice emB, será obtido a partir dos vetoresu =A−B e v =C−B por
+θs = atan2(uxvy−uyvx, u·v), −π <θs≤π. (1)
+Steinck e Sola · 2026 Página 2 de 6
+
+--- PAGINA 4 ---
+UFSC · CTC · EEL Proposta de Projeto
+A magnitude|θs|será usada nos atributos de postura, enquanto a série orientada será normalizada
+entre os lados corporais e desenrolada no tempo quando necessário para preservar a continuidade
+angular. Dessa forma, o sinal e a evolução temporal podem auxiliar na distinção do sentido do
+movimento sem reduzir o ângulo ao intervalo[0,π]. Como a medição é bidimensional, ela representa
+apenas a projeção do movimento no plano da imagem e não será interpretada como medida clínica
+de hiperextensão ou de rotação tridimensional.
+Serão utilizados os ângulos do joelho e do quadril, a inclinação do tronco, a altura do quadril
+normalizada por uma medida corporal e as variações dessas grandezas entre quadros. A normalização
+reduz a influência da distância entre a pessoa e a câmera. Uma média móvel exponencial (EMA)
+suavizará oscilações rápidas:
+ˆxk =αxk + (1−α)ˆxk−1, 0<α≤1. (2)
+Por ser um filtro causal, a EMA introduz atraso temporal: valores menores deαproduzem maior
+suavização, porém deslocam a resposta em relação ao movimento real. Portanto,αnão será fixado
+apenas por inspeção visual. Ele será selecionado nas sessões de treinamento/validação, em conjunto
+com a janela de estabilidade da máquina de estados, considerando F1 macro, erro de contagem,
+falsas transições e latência entre a mudança observada nos atributos brutos e a mudança de estado
+confirmada. As sessões de teste permanecerão fora dessa escolha para evitar ajuste ao conjunto de
+avaliação.
+4.2 Dois métodos de classificação
+Método A — referência geométrica.Após uma calibração individual nas posturas sentada e
+em pé, regras sobre ângulos e altura do quadril fornecerão uma referência interpretável. Uma fase
+só será confirmada após permanecer estável por vários quadros, reduzindo mudanças causadas por
+ruído.
+Método B — classificação supervisionada.Os mesmos atributos alimentarão modelos do
+Scikit-learn [7]. Serão avaliados Regressão Logística e Floresta Aleatória [3]. Pré-processamento
+e modelo serão reunidos em umpipeline, para que a padronização seja aprendida somente com o
+conjunto de treinamento.
+O classificador reconhecerá três fases estáticas. A máquina de estados observará a sequência temporal
+para identificar LEVANTANDO e SENTANDO. A contagem só avançará após a sequência completa;
+tentativas sem atingir a fase em pé, mudanças isoladas e perdas prolongadas de rastreamento serão
+rejeitadas.
+4.3 Aquisição, rotulagem e divisão dos dados
+Serão gravadas 12 sessões controladas, seis por integrante, com 8 a 12 repetições por sessão. Haverá
+variação moderada de iluminação, roupa e distância, porém a geometria de aquisição será controlada:
+a câmera permanecerá fixa, aproximadamente à altura do quadril, com o plano do sensor paralelo
+ao plano sagital do movimento e o eixo óptico aproximadamente perpendicular a esse plano. A
+pessoa será posicionada lateralmente, próxima ao centro da imagem e com o corpo inteiro visível.
+Marcas no piso serão usadas para repetir a orientação e a distância entre sessões. Essa restrição
+reduz erros de perspectiva e é necessária porque os ângulos extraídos são projeções bidimensionais.
+Os vídeos serão rotulados por intervalos nas classesSENTADO, TRANSIÇÃO e EM PÉ . Quadros pouco
+visíveis serão inválidos, e parte das sequências incluirá movimentos incompletos.
+Treino e teste serão separados por sessão, não por quadros aleatórios. Assim, quadros consecutivos da
+mesma gravação não aparecerão nos dois conjuntos, o que reduziria artificialmente o erro. A seleção
+do modelo usará validação cruzada em grupos. Como haverá apenas dois participantes, os resultados
+demonstrarão funcionamento controlado, sem pretensão de generalização para a população.
+Steinck e Sola · 2026 Página 3 de 6
+
+--- PAGINA 5 ---
+UFSC · CTC · EEL Proposta de Projeto
+4.4 Avaliação
+Os métodos A e B serão comparados nas mesmas sessões. Para as fases serão calculados acurácia
+balanceada, precisão, revocação, F1 macro e matriz de confusão. Para a tarefa final serão medidos
+contagem real e estimada, erro absoluto, falsas contagens, rejeição de tentativas incompletas, perdas
+de rastreamento e quadros por segundo. Os erros serão analisados por iluminação, enquadramento
+e oclusão.
+5. Materiais e ferramentas
+O modelo de pose pré-treinado e o pequeno conjunto de atributos dispensam GPU dedicada. A
+arquitetura separará captura, geometria, classificação, lógica temporal, interface e exportação. Os
+testes automáticos de ângulos, fases e contagem serão preservados e ampliados; uma CNN sobre
+imagens completas ficará fora do escopo.
+Os vídeos serão produzidos pela equipe e armazenados localmente durante o desenvolvimento. A
+demonstração usará somente imagens autorizadas; eventual participante adicional deverá concordar
+com a gravação. Não serão coletados nomes, condições médicas ou dados clínicos.
+Recurso Finalidade Situação
+Python 3.11 e ambiente
+virtual
+Execução isolada e reprodutível do projeto Disponível/testado
+OpenCV Captura da webcam, conversão de cor,
+desenho e interface de vídeo
+Disponível/testado
+MediaPipe Pose Landmarker Estimação dos 33 marcos corporais Disponível/testado
+Scikit-learn Pipelines, validação, classificadores e métricas Disponível/testado
+NumPy e Pandas Cálculo numérico e armazenamento dos
+resultados
+Disponível/testado
+Webcam de notebook/USB Aquisição dos vídeos em plano lateral Disponível/testado
+Protótipo em português Calibração, fases, contagem, mensagens e CSV Disponível/testado
+Vídeos e rótulos do
+experimento
+Treinamento e teste por sessão Planejado
+Interface revisada Organização visual, controles e apresentação
+dos resultados
+Em desenvolvimento
+Tabela 1: Recursos previstos e estágio atual.
+6. Cronograma
+Steinck e Sola · 2026 Página 4 de 6
+
+--- PAGINA 6 ---
+UFSC · CTC · EEL Proposta de Projeto
+Período Etapa e entrega verificável Responsável principal
+18 a 25/09 Consolidação do escopo, proposta e identidade visual;
+submissão do PDF
+Ambos
+26/09 a 09/10 Protocolo de gravação, teste-piloto e definição do guia
+de rotulagem
+Luis Sola; revisão de Luiz
+Steinck
+10 a 23/10 Aquisição e rotulagem das 12 sessões; exportação dos
+atributos
+Ambos
+24/10 a 06/11 Treinamento, validação por grupos e comparação dos
+classificadores
+Luis Sola
+07 a 20/11 Integração do modelo, revisão da interface e testes de
+falha
+Luiz Steinck
+21 a 30/11 Experimentos finais, gráficos, relatório, demonstração
+e apresentação
+Ambos
+Tabela 2: Etapas previstas para o desenvolvimento.
+Conclusão e controle de riscos: o projeto estará completo com demonstração reproduzível,
+comparação quantitativa, análise de erros e instruções de execução. Oclusões, rastreamento instável e
+poucos exemplos serão tratados com controle da geometria lateral da câmera, verificação de visibilidade,
+suavização temporal com latência explicitamente avaliada, divisão por sessão e coleta em condições
+variadas.
+Steinck e Sola · 2026 Página 5 de 6
+
+--- PAGINA 7 ---
+UFSC · CTC · EEL Proposta de Projeto
+Referências
+[1] Valentin Bazarevsky, Ivan Grishchenko, Karthik Raveendran, Tyler Zhu, Fan Zhang, and
+Matthias Grundmann. BlazePose: On-device real-time body pose tracking. arXiv preprint
+arXiv:2006.10204, 2020. doi: 10.48550/arXiv.2006.10204. URL https://arxiv.org/abs/2006.102
+04.
+[2] Gary Bradski. The opencv library.Dr. Dobb’s Journal of Software Tools , 2000. URL https:
+//opencv.org/.
+[3] Leo Breiman. Random forests.Machine Learning, 45:5–32, 2001. doi: 10.1023/A:1010933404324.
+[4] Google. Pose landmarker: Python guide. MediaPipe Solutions Documentation, 2026. URL
+https://developers.google.com/edge/mediapipe/solutions/vision/pose_landmarker/python.
+Acesso em: 17 set. 2026.
+[5] Daniel Guarnizo. Pose estimation for fitness exercise analysis. Repositório de código no GitHub,
+s.d. URL https://github.com/DanielGuarnizo/Pose-Estimation-for-Fitness-Exercise-Analysis.
+Acesso em: 17 set. 2026.
+[6] Wim G. M. Janssen, Hans B. J. Bussmann, and Henk J. Stam. Determinants of the sit-to-stand
+movement: A review. Physical Therapy, 82(9):866–879, 2002. doi: 10.1093/ptj/82.9.866.
+[7] Fabian Pedregosa, Gaël Varoquaux, Alexandre Gramfort, Vincent Michel, Bertrand Thirion,
+Olivier Grisel, Mathieu Blondel, Peter Prettenhofer, Ron Weiss, Vincent Dubourg, Jake
+Vanderplas, Alexandre Passos, David Cournapeau, Matthieu Brucher, Matthieu Perrot, and
+Édouard Duchesnay. Scikit-learn: Machine learning in python.Journal of Machine Learning
+Research, 12(85):2825–2830, 2011. URL https://jmlr.org/papers/v12/pedregosa11a.html.
+Steinck e Sola · 2026 Página 6 de 6

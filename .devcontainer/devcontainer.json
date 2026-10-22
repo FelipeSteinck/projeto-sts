@@ -18,6 +18,6 @@
       ]
     }
   },
-  "postCreateCommand": "python .devcontainer/bootstrap.py && bash scripts/setup_codespaces.sh",
+  "postCreateCommand": "bash scripts/setup_codespaces.sh",
   "postStartCommand": "bash scripts/start_background.sh"
 }

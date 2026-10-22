@@ -1,0 +1,97 @@
+
+--- PAGINA 1 ---
+UNIVERSIDADE FEDERAL DE SANTA CATARINA
+CENTRO TECNOLÓGICO
+Departamento de Engenharia Elétrica e Eletrônica
+Campus Trindade - CEP 88040-900 -Florianópolis SC
+Tel: 48 3721-2260
+PLANO DE ENSINO 2026.2
+I. IDENTIFICAÇÃO DA DISCIPLINA:
+CÓDIGO NOME DA DISCIPLINA
+HORAS-AULA 
+SEMANAIS HORAS-AULA 
+SEMESTRAISTEÓRICAS PRÁTICAS
+EEL7825 Projeto Nível 2 em Controle e 
+Processamento de Sinais
+2 2 72 horas
+II. PROFESSOR(ES) MINISTRANTE(S)
+Prof. Joceli Mayer
+III. PRÉ-REQUISITO(S)  (Código(s) e nome da(s) disciplina(s)
+IV. CURSOS PARA OS QUAIS A DISCIPLINA É OFERECIDA
+(202) Engenharia Elétrica
+V. EMENTA
+Desenvolvimento de projetos visando integração vertical e horizontal dos conteúdos das disciplinas do curso, assim 
+como um caráter de multidisciplinaridade.Os projetos são realizados em grupos que, normalmente, incluem discentes 
+de fases diferentes, capacitando o estudante para o trabalho em equipes multidisciplinares. Os projetos propostos pelos 
+professores, dentro de sua área de atuação, ao início de cada semestre, são apresentados em Planos de Ensino, 
+divulgados entre o final de um semestre e o início do semestre seguinte. Devem ter interesse social, integrando a 
+universidade com a comunidade externa.
+VI. OBJETIVOS
+Esta disciplina de projetos visa investigar os conceitos fundamentais de Processamento de Imagens, Visão Computacional e suas aplicações. Processamento de Imagens aplica-se a 
+diversos problemas que envolvem: Processamento da informação visual visando a interpretação humana e por sistemas automatizados, a classificação e a identificação automática de 
+padrões e formas. A indústria brasileira tem-se beneficiado de diversas formas de técnicas de Processamento de Imagens, as quais permitem automatização de sistemas de verificação 
+de falhas, monitoração de processos e ambientes, entre outras. Além disso, a crescente disponibilidade e barateamento de sistemas de aquisição e processamento de imagens tem 
+popularizado a utilização de sistemas automatizados em larga escala que envolvem técnicas de processamento digital de imagens.
+VII. CONTEÚDO PROGRAMÁTICO
+Introdução a Processamento Digital de Imagens e Laboratório (36 horas): Fundamentos, aquisição e amostragem, transformada discreta de Fourier bi-dimensional, processamento 
+pontual, filtragem e equalização, processamento no domínio da freqüência, morfologia matemática, segmentação de imagens, limiarização, detecção de bordas e descontinuidades, 
+descritores de características, reconhecimento e interpretação com métodos de decisão por distância, com métodos estatísticos e treinamento supervisionado.
+Desenvolvimento de Projeto (36 horas): Projeto em equipe a ser escolhido dentre os seguintes temas:
+1. Extração, classificação e identificação de padrões para aplicação em identificação de indivíduos, objetos e auxílio ao diagnóstico clínico.
+2. Detecção de falhas em peças manufaturadas e controle de qualidade em linha de produção industrial.
+3. Monitoramento automatizado de áreas com detecção de movimento, eventos e incidentes.
+4. Outros temas a serem acordados com o professor da disciplina.
+VIII. METODOLOGIA DE ENSINO / DESENVOLVIMENTO DO PROGRAMA
+O  material  do  curso  será  ministrado  através  de  aulas  expositivas  presenciais  de  conteúdo  teórico,  
+ilustração de conceitos através de visualização gráfica e exemplos de sistemas práticos aplicados em  
+engenharia. Transparências digitais (vídeos, notas de aulas, slides ou lâminas) e outros materiais poderão  
+ser disponibilizadas aos alunos via o AVA (do moodle da UFSC). As avaliações serão realizadas por  
+análise  do  trabalho  individual  ou  equipe  envolvendo  a  implementação  de  algoritmos  ministrados  e 
+respectivos resultados, como relatório, códigos  e também pela apresenta ção dos resultados em aula  
+presencial na data a ser acordada com a turma. Estas avaliações são componentes essenciais ao processo  
+
+
+--- PAGINA 2 ---
+de aprendizado pois servem como instrumento de realimentação ao estudante e avaliação do progresso  
+dos estudantes no domínio do conteúdo. Será oferecido atendimento aos alunos de forma presencial, em  
+horário  acordado,  e  através  de  vídeo  conferências,  email  e/ou  chat,  visando  esclarecer  dúvidas  e  
+complementar o conteúdo.
+IX. ATIVIDADES PRÁTICAS
+1. Os alunos apresentarão relatórios sobre os trabalhos práticos ou teóricos sobre uma determinada  
+aplicação  com  a  implementação  opcional  de  algoritmos  de  processamento  de  imagens  em  seus  
+computadores. As ferramentas de software (programas) necessárias para a realização das atividades serão  
+software livres (open-source e/ou gratuitos) e/ou do acervo de programas com licença da UFSC (via  
+Setic) disponíveis aos discentes e docentes.
+X. METODOLOGIA DE AVALIAÇÃO E CONTROLE DE FREQUÊNCIA
+O controle de frequência nas atividades será realizado nas aulas presenciais. Para obter aprovação na  
+disciplina,  será  necessário  ao  menos  75%  de  participação/atendimento  nas  atividades  oferecidas.  A  
+critério  do  professor,  serão  oferecidas  atividades  de  vídeos-aula  assíncronas,  material  complementar 
+como textos e slides, atividades avaliativas como projetos, atendimento via conferências síncronas, entre  
+outras. O desempenho do aluno será observado pelo desempenho nos relatórios (20%) e apresentações do  
+projeto (80%). Ao final do semestre, nos casos onde a média de desempenho observada for inferior à 5,75 
+pontos,  serão oferecidas atividades de avaliação de recuperação e/ ou substitutivas.
+XI. REFERÊNCIAS
+BIBLIOGRAFIA BÁSICA
+[1] C. Gonzalez e R. E. Woods, Digital Image Processing, Addison Wesley Longman.
+BIBLIOGRAFIA COMPLEMENTAR
+[2] Sítio com material complementar: Image Processing Place.
+
+--- PAGINA 3 ---
+Cronograma
+Semana Data CH
+1 13/08 4h Apresentação do planejamento didático, plano de ensino
+e princípios teóricos que fazem a base dos estudos da disciplina.
+Introdução a Processamento Digital de Imagens.
+2-16 20/08 
+- 
+26/11
+64h Aulas expositivas presenciais nos tópicos do conteúdo programático e
+ acompanhamento do desenvolvimento dos projetos e atividades didáticas
+de avaliação (apresentação dos projetos por parte dos discentes)
+e de recuperação/substitutivas.
+17 03/12
+-
+10/12
+4h Acompanhamento do desenvolvimento dos projetos e atividades 
+didáticas de avaliação (apresentação dos projetos por parte dos 
+discentes) e de recuperação/substitutivas.

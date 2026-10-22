@@ -1,0 +1,472 @@
+[
+  {
+    "path": "03_Proposta_e_Instrucoes/Proposta_Projeto_STS_Steinck_Sola_CORRIGIDA.pdf",
+    "bytes": 316171,
+    "sha256": "958abd439fd74cb3722af256ce48f46cd798b94581f56538e7c7f171a8b6393f",
+    "download_path": "C:\\Users\\Felipe Steinck\\Downloads\\Proposta_Projeto_STS_Steinck_Sola_CORRIGIDA.pdf"
+  },
+  {
+    "path": "03_Proposta_e_Instrucoes/Proposta_Projeto_STS_Overleaf_CORRIGIDA.zip",
+    "bytes": 71172,
+    "sha256": "7f0c713ba99061ba417176769a49f0f9e40ba59ca94acae5333575cf423cb2d4",
+    "download_path": "C:\\Users\\Felipe Steinck\\Downloads\\Proposta_Projeto_STS_Overleaf_CORRIGIDA.zip",
+    "zip_integrity": "CRC OK",
+    "extracted_to": "C:\\Users\\Felipe Steinck\\OneDrive\\Documentos\\ChatGPT\\elepot remontada\\Pacote_STS_Codex\\Analise_STS_2026-10-22\\extraidos\\03_proposta_corrigida",
+    "entries": [
+      {
+        "name": "main.tex",
+        "bytes": 20029,
+        "crc32": "7da0843a"
+      },
+      {
+        "name": "referencias.bib",
+        "bytes": 2456,
+        "crc32": "fadad59b"
+      },
+      {
+        "name": "logo.jpg",
+        "bytes": 3906,
+        "crc32": "74196c60"
+      },
+      {
+        "name": "CTC_logo.png",
+        "bytes": 57559,
+        "crc32": "607e1923"
+      },
+      {
+        "name": "README_OVERLEAF.txt",
+        "bytes": 876,
+        "crc32": "d6792ff2"
+      }
+    ]
+  },
+  {
+    "path": "07_Historico/Proposta_Projeto_STS_Overleaf(1).zip",
+    "bytes": 70449,
+    "sha256": "4c54255828437c48cdc501b26f4fd306367c9ec328b11490023c4eabc7c02d55",
+    "download_path": "C:\\Users\\Felipe Steinck\\Downloads\\Proposta_Projeto_STS_Overleaf(1).zip",
+    "zip_integrity": "CRC OK",
+    "extracted_to": "C:\\Users\\Felipe Steinck\\OneDrive\\Documentos\\ChatGPT\\elepot remontada\\Pacote_STS_Codex\\Analise_STS_2026-10-22\\extraidos\\07_proposta_historica_1",
+    "entries": [
+      {
+        "name": "main.tex",
+        "bytes": 18114,
+        "crc32": "792f533c"
+      },
+      {
+        "name": "referencias.bib",
+        "bytes": 2456,
+        "crc32": "fadad59b"
+      },
+      {
+        "name": "logo.jpg",
+        "bytes": 3906,
+        "crc32": "74196c60"
+      },
+      {
+        "name": "CTC_logo.png",
+        "bytes": 57559,
+        "crc32": "607e1923"
+      },
+      {
+        "name": "README_OVERLEAF.txt",
+        "bytes": 876,
+        "crc32": "d6792ff2"
+      }
+    ]
+  },
+  {
+    "path": "07_Historico/Proposta_Projeto_STS_Overleaf.zip",
+    "bytes": 70449,
+    "sha256": "4c54255828437c48cdc501b26f4fd306367c9ec328b11490023c4eabc7c02d55",
+    "download_path": "C:\\Users\\Felipe Steinck\\Downloads\\Proposta_Projeto_STS_Overleaf (1).zip",
+    "zip_integrity": "CRC OK",
+    "extracted_to": "C:\\Users\\Felipe Steinck\\OneDrive\\Documentos\\ChatGPT\\elepot remontada\\Pacote_STS_Codex\\Analise_STS_2026-10-22\\extraidos\\07_proposta_historica_2",
+    "entries": [
+      {
+        "name": "main.tex",
+        "bytes": 18114,
+        "crc32": "792f533c"
+      },
+      {
+        "name": "referencias.bib",
+        "bytes": 2456,
+        "crc32": "fadad59b"
+      },
+      {
+        "name": "logo.jpg",
+        "bytes": 3906,
+        "crc32": "74196c60"
+      },
+      {
+        "name": "CTC_logo.png",
+        "bytes": 57559,
+        "crc32": "607e1923"
+      },
+      {
+        "name": "README_OVERLEAF.txt",
+        "bytes": 876,
+        "crc32": "d6792ff2"
+      }
+    ]
+  },
+  {
+    "path": "07_Historico/Proposta_Projeto_STS_Steinck_Sola.pdf",
+    "bytes": 310966,
+    "sha256": "3e58a55f8017912ac4f527cac803bf4e1cabe7b0e77172c38c35d7af39792753",
+    "download_path": "C:\\Users\\Felipe Steinck\\Downloads\\Proposta_Projeto_STS_Steinck_Sola.pdf"
+  },
+  {
+    "path": "05_Identidade_Visual/CTC_logo.png",
+    "bytes": 57559,
+    "sha256": "41acd18d318069b598e74d80c64404e2272caee1d3c840b1bf6ff042fdb15991",
+    "download_path": "C:\\Users\\Felipe Steinck\\Downloads\\CTC_logo.png"
+  },
+  {
+    "path": "05_Identidade_Visual/logo.jpg",
+    "bytes": 3906,
+    "sha256": "1c8e533c9d6c8095ea7d5b526915640fc6baa61afe6be117990f4f6535d60fa4",
+    "download_path": "C:\\Users\\Felipe Steinck\\Downloads\\logo.jpg"
+  },
+  {
+    "path": "03_Proposta_e_Instrucoes/ProopostaProjetos (1).pdf",
+    "bytes": 27171,
+    "sha256": "0493e9732697e0e66265486af95e2936e567c897b5031d98c380c9d552bd4349",
+    "download_path": "C:\\Users\\Felipe Steinck\\Downloads\\ProopostaProjetos (1).pdf"
+  },
+  {
+    "path": "01_Codigo/monitor_sentar_levantar_ptbr.zip",
+    "bytes": 69367,
+    "sha256": "32563df3643e3beeb6413ee7151f5c19c81e683b12c63e172b8c2c0691f9941f",
+    "download_path": "C:\\Users\\Felipe Steinck\\Downloads\\monitor_sentar_levantar_ptbr (6).zip",
+    "zip_integrity": "CRC OK",
+    "extracted_to": "C:\\Users\\Felipe Steinck\\OneDrive\\Documentos\\ChatGPT\\elepot remontada\\Pacote_STS_Codex\\Analise_STS_2026-10-22\\extraidos\\01_monitor_ptbr",
+    "entries": [
+      {
+        "name": "monitor_sentar_levantar_ptbr/",
+        "bytes": 0,
+        "crc32": "00000000"
+      },
+      {
+        "name": "monitor_sentar_levantar_ptbr/requirements.txt",
+        "bytes": 86,
+        "crc32": "98828e6f"
+      },
+      {
+        "name": "monitor_sentar_levantar_ptbr/main.py",
+        "bytes": 89,
+        "crc32": "d8e4811e"
+      },
+      {
+        "name": "monitor_sentar_levantar_ptbr/outputs/",
+        "bytes": 0,
+        "crc32": "00000000"
+      },
+      {
+        "name": "monitor_sentar_levantar_ptbr/outputs/sessoes/",
+        "bytes": 0,
+        "crc32": "00000000"
+      },
+      {
+        "name": "monitor_sentar_levantar_ptbr/outputs/sessoes/.gitkeep",
+        "bytes": 1,
+        "crc32": "32d70693"
+      },
+      {
+        "name": "monitor_sentar_levantar_ptbr/data/",
+        "bytes": 0,
+        "crc32": "00000000"
+      },
+      {
+        "name": "monitor_sentar_levantar_ptbr/data/.gitkeep",
+        "bytes": 1,
+        "crc32": "32d70693"
+      },
+      {
+        "name": "monitor_sentar_levantar_ptbr/instalar.ps1",
+        "bytes": 392,
+        "crc32": "a7d5b246"
+      },
+      {
+        "name": "monitor_sentar_levantar_ptbr/README.md",
+        "bytes": 3143,
+        "crc32": "29fcc141"
+      },
+      {
+        "name": "monitor_sentar_levantar_ptbr/docs/",
+        "bytes": 0,
+        "crc32": "00000000"
+      },
+      {
+        "name": "monitor_sentar_levantar_ptbr/docs/preview_interface.png",
+        "bytes": 48597,
+        "crc32": "f45cfb12"
+      },
+      {
+        "name": "monitor_sentar_levantar_ptbr/GUIA_WINDOWS.md",
+        "bytes": 3287,
+        "crc32": "efac4ae8"
+      },
+      {
+        "name": "monitor_sentar_levantar_ptbr/REFERENCIAS.md",
+        "bytes": 1243,
+        "crc32": "f07f73a9"
+      },
+      {
+        "name": "monitor_sentar_levantar_ptbr/models/",
+        "bytes": 0,
+        "crc32": "00000000"
+      },
+      {
+        "name": "monitor_sentar_levantar_ptbr/models/LEIA-ME.txt",
+        "bytes": 259,
+        "crc32": "0a62d255"
+      },
+      {
+        "name": "monitor_sentar_levantar_ptbr/testar.ps1",
+        "bytes": 294,
+        "crc32": "0962ff16"
+      },
+      {
+        "name": "monitor_sentar_levantar_ptbr/src/",
+        "bytes": 0,
+        "crc32": "00000000"
+      },
+      {
+        "name": "monitor_sentar_levantar_ptbr/src/__init__.py",
+        "bytes": 51,
+        "crc32": "ced74bd8"
+      },
+      {
+        "name": "monitor_sentar_levantar_ptbr/src/nucleo.py",
+        "bytes": 16393,
+        "crc32": "c3d87d5e"
+      },
+      {
+        "name": "monitor_sentar_levantar_ptbr/src/aplicacao.py",
+        "bytes": 19192,
+        "crc32": "c30dabc4"
+      },
+      {
+        "name": "monitor_sentar_levantar_ptbr/src/interface.py",
+        "bytes": 17741,
+        "crc32": "c56210e3"
+      },
+      {
+        "name": "monitor_sentar_levantar_ptbr/executar.ps1",
+        "bytes": 282,
+        "crc32": "f48e2c5b"
+      }
+    ]
+  },
+  {
+    "path": "06_Referencia_Externa/Pose-Estimation-for-Fitness-Exercise-Analysis-main.zip",
+    "bytes": 232507076,
+    "sha256": "93caaac50e51d4081e9604042269239c5283630e94cfdcfd12c778696eb0fae7",
+    "download_path": "C:\\Users\\Felipe Steinck\\Downloads\\Pose-Estimation-for-Fitness-Exercise-Analysis-main (1).zip",
+    "zip_integrity": "CRC OK",
+    "extracted_to": "C:\\Users\\Felipe Steinck\\OneDrive\\Documentos\\ChatGPT\\elepot remontada\\Pacote_STS_Codex\\Analise_STS_2026-10-22\\extraidos\\06_ref_externa",
+    "entries": [
+      {
+        "name": "Pose-Estimation-for-Fitness-Exercise-Analysis-main/",
+        "bytes": 0,
+        "crc32": "00000000"
+      },
+      {
+        "name": "Pose-Estimation-for-Fitness-Exercise-Analysis-main/.DS_Store",
+        "bytes": 6148,
+        "crc32": "8fa73b65"
+      },
+      {
+        "name": "Pose-Estimation-for-Fitness-Exercise-Analysis-main/CSV_files/",
+        "bytes": 0,
+        "crc32": "00000000"
+      },
+      {
+        "name": "Pose-Estimation-for-Fitness-Exercise-Analysis-main/CSV_files/coords_BP_C.csv",
+        "bytes": 4709715,
+        "crc32": "9b6e111e"
+      },
+      {
+        "name": "Pose-Estimation-for-Fitness-Exercise-Analysis-main/CSV_files/coords_DL_C.csv",
+        "bytes": 6340304,
+        "crc32": "18aaa2b9"
+      },
+      {
+        "name": "Pose-Estimation-for-Fitness-Exercise-Analysis-main/CSV_files/coords_SQ_C.csv",
+        "bytes": 3351952,
+        "crc32": "f5886ae0"
+      },
+      {
+        "name": "Pose-Estimation-for-Fitness-Exercise-Analysis-main/Doc/",
+        "bytes": 0,
+        "crc32": "00000000"
+      },
+      {
+        "name": "Pose-Estimation-for-Fitness-Exercise-Analysis-main/Doc/ComputerVisionProject.pdf",
+        "bytes": 519717,
+        "crc32": "f03d6ea7"
+      },
+      {
+        "name": "Pose-Estimation-for-Fitness-Exercise-Analysis-main/GuideLine.ipynb",
+        "bytes": 23501,
+        "crc32": "d6926aa3"
+      },
+      {
+        "name": "Pose-Estimation-for-Fitness-Exercise-Analysis-main/Model_Predictions.py",
+        "bytes": 3994,
+        "crc32": "f91c055b"
+      },
+      {
+        "name": "Pose-Estimation-for-Fitness-Exercise-Analysis-main/Models/",
+        "bytes": 0,
+        "crc32": "00000000"
+      },
+      {
+        "name": "Pose-Estimation-for-Fitness-Exercise-Analysis-main/Models/Bench_rf.pkl",
+        "bytes": 205724,
+        "crc32": "e4bba797"
+      },
+      {
+        "name": "Pose-Estimation-for-Fitness-Exercise-Analysis-main/Models/Deadlift_rf.pkl",
+        "bytes": 333255,
+        "crc32": "568f18b8"
+      },
+      {
+        "name": "Pose-Estimation-for-Fitness-Exercise-Analysis-main/Models/Squat_rf.pkl",
+        "bytes": 175828,
+        "crc32": "d667a57a"
+      },
+      {
+        "name": "Pose-Estimation-for-Fitness-Exercise-Analysis-main/README.md",
+        "bytes": 6367,
+        "crc32": "92482a63"
+      },
+      {
+        "name": "Pose-Estimation-for-Fitness-Exercise-Analysis-main/Videos/",
+        "bytes": 0,
+        "crc32": "00000000"
+      },
+      {
+        "name": "Pose-Estimation-for-Fitness-Exercise-Analysis-main/Videos/BackDeadlift_45f.mp4",
+        "bytes": 30066827,
+        "crc32": "9b0eaa4a"
+      },
+      {
+        "name": "Pose-Estimation-for-Fitness-Exercise-Analysis-main/Videos/CorrectBench_45f.mp4",
+        "bytes": 23331271,
+        "crc32": "2ed3b467"
+      },
+      {
+        "name": "Pose-Estimation-for-Fitness-Exercise-Analysis-main/Videos/CorrectDeadlift_45f.mp4",
+        "bytes": 23746023,
+        "crc32": "80fce24e"
+      },
+      {
+        "name": "Pose-Estimation-for-Fitness-Exercise-Analysis-main/Videos/CorrectSquat_45f.mp4",
+        "bytes": 18213784,
+        "crc32": "3914e43d"
+      },
+      {
+        "name": "Pose-Estimation-for-Fitness-Exercise-Analysis-main/Videos/DeepSquat.mp4",
+        "bytes": 22624832,
+        "crc32": "64fe2ba2"
+      },
+      {
+        "name": "Pose-Estimation-for-Fitness-Exercise-Analysis-main/Videos/ForwardSquat_45f.mp4",
+        "bytes": 17533321,
+        "crc32": "ae31817e"
+      },
+      {
+        "name": "Pose-Estimation-for-Fitness-Exercise-Analysis-main/Videos/RollBench_45f.mp4",
+        "bytes": 37402103,
+        "crc32": "81464205"
+      },
+      {
+        "name": "Pose-Estimation-for-Fitness-Exercise-Analysis-main/Videos/RollingDeadlift_45f.mp4",
+        "bytes": 25702735,
+        "crc32": "d0b206d0"
+      },
+      {
+        "name": "Pose-Estimation-for-Fitness-Exercise-Analysis-main/Videos/TietBench_45f.mp4",
+        "bytes": 29074594,
+        "crc32": "93e13dc4"
+      },
+      {
+        "name": "Pose-Estimation-for-Fitness-Exercise-Analysis-main/createCSV.py",
+        "bytes": 2565,
+        "crc32": "5683eb04"
+      }
+    ]
+  },
+  {
+    "path": "03_Proposta_e_Instrucoes/ProopostaProjetos.pdf",
+    "bytes": 27171,
+    "sha256": "0493e9732697e0e66265486af95e2936e567c897b5031d98c380c9d552bd4349",
+    "download_path": "C:\\Users\\Felipe Steinck\\Downloads\\ProopostaProjetos (2).pdf"
+  },
+  {
+    "path": "04_Relatorio_Anterior/relatorio_monitoramento_sentar_levantar.pdf",
+    "bytes": 890555,
+    "sha256": "104b81f78f0eb5ae23cfcd3b9908b62b10eaefeb027d0518ef4d7cccffec6795",
+    "download_path": "C:\\Users\\Felipe Steinck\\Downloads\\relatorio_monitoramento_sentar_levantar.pdf"
+  },
+  {
+    "path": "04_Relatorio_Anterior/relatorio_overleaf_monitor_sts.zip",
+    "bytes": 468348,
+    "sha256": "c763331fb7a04a1892ce15d14811690d1775049b000717f17911f55d24c7b57e",
+    "download_path": "C:\\Users\\Felipe Steinck\\Downloads\\relatorio_overleaf_monitor_sts.zip",
+    "zip_integrity": "CRC OK",
+    "extracted_to": "C:\\Users\\Felipe Steinck\\OneDrive\\Documentos\\ChatGPT\\elepot remontada\\Pacote_STS_Codex\\Analise_STS_2026-10-22\\extraidos\\04_relatorio",
+    "entries": [
+      {
+        "name": "main.tex",
+        "bytes": 44344,
+        "crc32": "bba5c74f"
+      },
+      {
+        "name": "referencias.bib",
+        "bytes": 3710,
+        "crc32": "9297e3fb"
+      },
+      {
+        "name": "README_OVERLEAF.md",
+        "bytes": 2155,
+        "crc32": "e1240f28"
+      },
+      {
+        "name": "ufsc_ctc.png",
+        "bytes": 58588,
+        "crc32": "c079d739"
+      },
+      {
+        "name": "execucao_preliminar.png",
+        "bytes": 382875,
+        "crc32": "8d20011d"
+      },
+      {
+        "name": "monitorar_sentar_levantar.py",
+        "bytes": 32292,
+        "crc32": "42f78548"
+      }
+    ]
+  },
+  {
+    "path": "01_Codigo/monitorar_sentar_levantar.py",
+    "bytes": 32292,
+    "sha256": "98fda55efbab5a2117dc5018cd2698632d2b436801d20035fdaaa37ed06ebfc7",
+    "download_path": "C:\\Users\\Felipe Steinck\\Downloads\\monitorar_sentar_levantar (3).py"
+  },
+  {
+    "path": "02_Planos_de_Ensino/EEL7815.pdf",
+    "bytes": 99461,
+    "sha256": "5bdb56e587cb41804e24c6400f9d9b310485511233ca18490d886148693f4f7b",
+    "download_path": "C:\\Users\\Felipe Steinck\\Downloads\\EEL7815.pdf"
+  },
+  {
+    "path": "02_Planos_de_Ensino/EEL7825.pdf",
+    "bytes": 99452,
+    "sha256": "2ba6fab563ffa12a94c7f672717b174785971417682f34587e2c42fb0b6c6cd6",
+    "download_path": "C:\\Users\\Felipe Steinck\\Downloads\\EEL7825.pdf"
+  }
+]

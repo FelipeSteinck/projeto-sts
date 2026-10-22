@@ -1,0 +1,687 @@
+
+--- PAGINA 1 ---
+UNIVERSIDADE FEDERAL DE SANTA CATARINA
+CENTRO TECNOLÓGICO
+Departamento de Engenharia Elétrica e Eletrônica
+RELATÓRIO TÉCNICO
+Monitoramento visual do exercício de sentar e levantar
+Apoio não clínico à execução de exercícios físicos por pessoas idosas com
+estimação de pose
+Aluno: Luiz Felipe Steinck
+Professor: Prof. Joceli Mayer
+Disciplina: EEL7815 / EEL7825 – Projeto Nível I/II em Controle
+e Processamento de Sinais
+Semestre: 2026.2
+Florianópolis
+2026
+
+--- PAGINA 2 ---
+Luiz Felipe Steinck Projeto Nível I/II
+Abstract
+Este relatório apresenta a fundamentação e a implementação inicial de um sistema
+de visão computacional para acompanhar, em tempo real, o exercício de sentar e
+levantar. A solução utiliza uma webcam comum, OpenCV e o MediaPipe Pose
+Landmarker para obter marcos corporais sem o uso de sensores presos ao usuário.
+A partir dos pontos do ombro, quadril, joelho e tornozelo do lado corporal mais
+visível, são calculados os ângulos do joelho, do quadril e a inclinação do tronco. Uma
+calibração individual define limites operacionais para as posturas sentado, transição e
+em pé; uma média móvel exponencial e um filtro de estabilidade reduzem oscilações;
+e uma máquina de estados conta apenas ciclos completos sentado–em pé–sentado. O
+protótipo apresenta informações visuais e grava somente dados numéricos em CSV.
+Os autotestes implementados validaram o cálculo angular, a classificação de fases e
+a lógica de contagem. Ainda não foram realizados ensaios clínicos nem validação
+com pessoas idosas; portanto, o sistema é apresentado como ferramenta acadêmica
+não clínica, e não como instrumento de diagnóstico, prescrição ou substituição de
+supervisão profissional.
+Palavras-chave: processamento digital de imagens; visão computacional; estimação
+de pose; MediaPipe; sentar e levantar; fisioterapia.
+i
+
+--- PAGINA 3 ---
+Luiz Felipe Steinck Projeto Nível I/II
+Sumário
+1 Introdução 1
+2 Fundamentação teórica 2
+3 Arquitetura e metodologia de implementação 5
+4 Bibliotecas e organização do código 7
+5 Resultados preliminares e verificação 10
+6 Limitações, segurança e aspectos éticos 13
+7 Plano de evolução 14
+8 Conclusão 14
+A Comandos de execução 16
+B Estrutura de arquivos 16
+ii
+
+--- PAGINA 4 ---
+Luiz Felipe Steinck Projeto Nível I/II
+1 Introdução
+O movimento de sentar e levantar (sit-to-stand, STS) participa de diversas atividades da
+vida diária e depende, entre outros fatores, de mobilidade e força dos membros inferiores.
+O teste de levantar da cadeira por 30 segundos foi proposto como medida prática da
+força funcional da parte inferior do corpo em pessoas idosas e apresentou evidências de
+confiabilidade e validade em adultos mais velhos residentes na comunidade [8]. O protocolo
+STEADI dos Centers for Disease Control and Prevention também inclui o teste para
+avaliar força e resistência das pernas [4]. As diretrizes da Organização Mundial da Saúde
+recomendam que pessoas idosas realizem atividade física multicomponente com ênfase em
+equilíbrio funcional e treinamento de força, respeitando condições individuais e orientação
+apropriada [11].
+Esses antecedentes motivam ferramentas acessíveis que descrevam o movimento e
+ofereçam realimentação objetiva. Sistemas ópticos tradicionais de captura de movimento
+podem exigir câmeras especializadas, marcadores e calibração complexa. Em contraste,
+a estimação de pose sem marcadores extrai pontos anatômicos aproximados de imagens
+RGB obtidas por uma câmera comum. A literatura recente investiga esse recurso em
+exercícios de reabilitação [1] e especificamente na análise de sentar e levantar [2].
+O presente trabalho implementa um protótipo acadêmico simples, compatível com
+a proposta das disciplinas EEL7815/EEL7825: integrar aquisição de imagens, extração de
+características, classificação de padrões e interpretação temporal [10]. O foco é a função
+técnica essencial. Não se pretende construir, nesta etapa, uma interface clínica completa
+nem emitir diagnóstico ou prescrição.
+1.1 Problema de engenharia
+Uma detecção isolada de pose informa onde determinados pontos corporais aparecem em
+um quadro, mas não determina por si só se uma repetição foi concluída. O sistema precisa
+transformar uma sequência ruidosa de coordenadas em estados semanticamente úteis. Isso
+envolve: adquirir vídeo; localizar marcos corporais; rejeitar medidas pouco confiáveis;
+calcular características geométricas; suavizar variações; classificar posturas; interpretar a
+ordem temporal das posturas; apresentar o resultado; e registrar evidências numéricas.
+1.2 Objetivos
+O objetivo geral é desenvolver e documentar um sistema de monitoramento visual, em
+tempo real e sem marcadores, para reconhecer fases do exercício de sentar e levantar e
+contar repetições completas.
+Os objetivos específicos são:
+• adquirir imagens de uma webcam em resolução configurável;
+• estimar os marcos corporais de uma pessoa com o MediaPipe Pose Landmarker;
+• selecionar automaticamente o lado corporal mais visível;
+• calcular ângulos de joelho e quadril e inclinação do tronco;
+• permitir calibração individual das posturas sentado e em pé;
+• reduzir instabilidade temporal das medidas e rótulos;
+• contar apenas a sequência completa sentado–em pé–sentado;
+• informar perda de rastreamento e tentativas incompletas;
+1
+
+--- PAGINA 5 ---
+Luiz Felipe Steinck Projeto Nível I/II
+• registrar dados numéricos da sessão sem armazenar imagens ou vídeo; e
+• estabelecer um plano de validação antes de qualquer uso com pessoas idosas.
+2 Fundamentação teórica
+2.1 Vídeo digital e processamento quadro a quadro
+Um vídeo digital pode ser tratado como uma sequência discreta de imagensIk(x,y,c ),
+em quek representa o instante amostrado,(x,y ) a posição do pixel ec o canal de cor. A
+webcam entrega sucessivos quadros ao programa; cada quadro é processado para produzir
+uma nova observação da pose. Conceitos de aquisição, amostragem, segmentação, descrição
+de características e reconhecimento fazem parte da base de processamento de imagens
+considerada pela disciplina [5, 10].
+No OpenCV, a classeVideoCapture abre a câmera e o métodoread fornece um
+indicador de sucesso e a matriz do quadro [9]. O formato de cor padrão usado pelo OpenCV
+é BGR, enquanto a entrada do MediaPipe é construída como sRGB. Por isso, a conversão
+IRGB = cvtColor(IBGR,COLOR_BGR2RGB) (1)
+é executada antes da inferência. Trata-se apenas de uma permutação dos canais de
+cor, mas a ausência dessa etapa altera os dados apresentados ao modelo.
+2.2 Estimação de pose sem marcadores
+Estimação de pose humana é a tarefa de localizar pontos de referência do corpo em uma
+imagem ou sequência. A família BlazePose foi concebida para execução em tempo real e
+produz 33 pontos corporais para uma pessoa [3]. A API Pose Landmarker do MediaPipe
+recebe imagens, quadros de vídeo ou fluxo ao vivo e retorna coordenadas normalizadas na
+imagem, coordenadas tridimensionais estimadas, presença e visibilidade [6, 7].
+Neste projeto é usado o pacote de modeloPose Landmarker Lite . A tarefa é
+configurada no modoVIDEO, com uma pessoa e limiares de confiança de 0,5 para detecção,
+presença e rastreamento. Cada chamada adetect_for_video recebe um carimbo de
+tempo estritamente crescente. Segundo a documentação, os modos de vídeo e fluxo usam
+rastreamento para evitar executar a detecção completa em todos os quadros, reduzindo
+latência [7].
+Embora a API forneça 33 marcos, a classificação atual usa apenas os quatro
+pontos do plano lateral mostrados na Tabela 1. Os índices seguem a convenção oficial do
+MediaPipe.
+Tabela 1: Marcos usados para calcular as métricas do exercício.
+Região Lado esquerdo Lado direito
+Ombro 11 12
+Quadril 23 24
+Joelho 25 26
+Tornozelo 27 28
+2
+
+--- PAGINA 6 ---
+Luiz Felipe Steinck Projeto Nível I/II
+Para cada lado, a qualidade é definida pelo menor valor entre presença e visibilidade
+dos quatro marcos. O lado com maior qualidade é escolhido, desde que os pontos estejam
+dentro da imagem e a qualidade seja pelo menos 0,60. Usar o mínimo é uma decisão
+conservadora: uma cadeia articular só é aceita se todos os seus pontos necessários forem
+considerados utilizáveis.
+2.3 Cálculo dos ângulos articulares em duas dimensões
+Sejam A, B e C três pontos, comB como vértice. Os vetores incidentes são
+u =A−B, v =C−B. (2)
+Em duas dimensões, o menor ângulo entre os vetores é obtido de modo numerica-
+mente estável por
+θ=|atan2 (uxvy−uyvx, uxvx +uyvy)|, (3)
+convertido de radianos para graus. O primeiro argumento deatan2 é o produto
+vetorial escalar em 2D e o segundo é o produto interno. Essa formulação preserva a
+informação necessária perto de0◦e 180◦. Vetores nulos são rejeitados.
+O ângulo do joelho usaA = quadril, B = joelho eC = tornozelo. O ângulo do
+quadril usaA = ombro, B = quadril eC = joelho. A inclinação absoluta do tronco
+compara o vetor quadril–ombro com o vetor vertical ascendente da imagem. Os valores
+são ângulos projetados no plano da imagem, não ângulos anatômicos tridimensionais. Essa
+diferença é uma fonte importante de erro quando a câmera não está aproximadamente
+perpendicular ao plano sagital do movimento.
+1 def c a l c u l a t e _ a n g l e ( point_a , vertex , point_c ) :
+2 vector_a = ( point_a [0] - vertex [0] , point_a [1] - vertex [1])
+3 vector_c = ( point_c [0] - vertex [0] , point_c [1] - vertex [1])
+4 norm_a = math . hypot (* vector_a )
+5 norm_c = math . hypot (* vector_c )
+6 if norm_a == 0.0 or norm_c == 0.0:
+7 raise V a l u e E r r o r ( " Nao e possivel calcular angulo com vetor nulo .
+" )
+8 dot = vector_a [0] * vector_c [0] + vector_a [1] * vector_c [1]
+9 cross = vector_a [0] * vector_c [1] - vector_a [1] * vector_c [0]
+10 return abs ( math . degrees ( math . atan2 ( cross , dot ) ) )
+Listing 1: Núcleo do cálculo angular implementado.
+2.4 Suavização temporal
+As coordenadas previstas variam ligeiramente mesmo quando a pessoa permanece parada.
+Essa variação é propagada aos ângulos. O protótipo aplica uma média móvel exponencial
+(EMA) separadamente a joelho, quadril e tronco:
+ˆxk =αxk + (1−α)ˆxk−1, α = 0,25. (4)
+Um αpequeno privilegia estabilidade, mas adiciona atraso. O valor 0,25 é um
+parâmetro inicial de engenharia, ainda sujeito a avaliação experimental. Além da EMA,
+3
+
+--- PAGINA 7 ---
+Luiz Felipe Steinck Projeto Nível I/II
+um novo rótulo de postura somente se torna estável depois de aparecer em três quadros
+consecutivos. Esse segundo mecanismo funciona como antirruído lógico e reduz trocas
+espúrias de estado perto dos limiares.
+2.5 Calibração e classificação por regras
+As amplitudes observadas dependem do usuário, da cadeira, da roupa e da posição da
+câmera. Por isso, o programa registra uma amostra sentado, ao pressionar a tecla 1, e
+uma amostra em pé, ao pressionar a tecla 2. A calibração só é aceita se a diferença entre
+os extremos for de pelo menos20◦para joelho e quadril.
+Para uma articulação com extremo sentadoas e extremo em péae, são definidos
+Ls =as + 0,45(ae−as), (5)
+Le =as + 0,75(ae−as). (6)
+A postura ésentado quando os ângulos de joelho e quadril são menores ou iguais
+aos respectivos Ls; é em pé quando ambos são maiores ou iguais aos respectivosLe;
+caso contrário, étransição. A região entre 45% e 75% cria histerese semântica e reduz
+a ambiguidade dos extremos. Esses percentuais não são critérios clínicos: são limiares
+operacionais, escolhidos para permitir um primeiro protótipo calibrável.
+1 def classify ( self , knee_angle , h ip _a ng le ) :
+2 sitting = ( k n e e _ a n g l e <= self . s i t t i n g _ k n e e _ l i m i t
+3 and hi p _a ng le <= self . s i t t i n g _ h i p _ l i m i t )
+4 standing = ( k n e e _ a n g l e >= self . s t a n d i n g _ k n e e _ l i m i t
+5 and h ip _a ng le >= self . s t a n d i n g _ h i p _ l i m i t )
+6 if sitting :
+7 return Posture . SITTING
+8 if standing :
+9 return Posture . STANDING
+10 return Posture . T R A N S I T I O N
+Listing 2: Regra de classificação das posturas.
+2.6 Interpretação temporal por máquina de estados
+Um rótulo em pé isolado não é uma repetição. A contagem exige a ordem sentado→
+transição de subida→em pé→transição de descida→sentado. A Figura 1 resume a
+máquina de estados finitos. Retornos precoces ao estado sentado são registrados como
+tentativas incompletas. Se o rastreamento for perdido por 15 quadros durante um ciclo, a
+tentativa é cancelada para evitar contagens sem evidência visual contínua.
+Aguardando
+sentado Pronto Levantando
+Em péSentando
+sentado transição
+em pé
+transição
+sentado: +1
+Figura 1: Estados principais usados para reconhecer um ciclo completo.
+4
+
+--- PAGINA 8 ---
+Luiz Felipe Steinck Projeto Nível I/II
+3 Arquitetura e metodologia de implementação
+3.1 Fluxo do sistema
+A Figura 2 mostra a decomposição do processamento. A separação entre estimação de
+pose, extração de métricas e interpretação temporal facilita testes e futuras substituições
+de modelo ou classificador.
+Webcam
+640×480
+OpenCV
+captura e BGR→RGB
+MediaPipe
+33 marcos
+Seleção do lado
+e ângulos 2D
+EMA e filtro
+de estabilidade
+Classificação
+por calibração
+Máquina de estados
+e contagem
+Painel em tempo real
+e arquivo CSV
+Figura 2: Fluxo funcional do protótipo.
+3.2 Requisitos e decisões de escopo
+Tabela 2: Requisitos funcionais da versão atual.
+ID Requisito Implementação
+RF01 Capturar vídeo de uma webcam comum. OpenCV
+VideoCapture.
+RF02 Estimar uma pose por quadro. Pose Landmarker
+Lite, modo vídeo.
+RF03 Rejeitar cadeia articular de baixa confiança. Limiar de visibil-
+idade/presença
+0,60.
+RF04 Classificar sentado, transição e em pé. Ângulos e cali-
+bração individual.
+RF05 Contar somente ciclos completos. Máquina de esta-
+dos finitos.
+RF06 Exibir métricas, fase, qualidade e mensagens. Sobreposição grá-
+fica do OpenCV.
+RF07 Registrar a sessão para análise posterior. CSV com medidas
+e eventos.
+RF08 Preservar privacidade por minimização. Não grava imagem,
+áudio ou vídeo.
+RF09 Permitir verificação sem câmera. Opção
+–self-test.
+5
+
+--- PAGINA 9 ---
+Luiz Felipe Steinck Projeto Nível I/II
+O escopo atual contém apenas uma pessoa, um exercício e uma câmera lateral aproxi-
+madamente fixa. Não há cadastro de pacientes, aplicativo móvel, banco de dados, nuvem,
+recomendação terapêutica automática nem classificação supervisionada. Essa delimi-
+tação mantém o projeto executável no semestre e permite que a contribuição central —
+processamento e interpretação de imagens — seja avaliada diretamente.
+3.3 Aquisição e inferência
+A função open_camera tenta primeiro o backend DirectShow no Windows e, em caso
+de falha, usa a seleção automática do OpenCV. A largura e a altura padrão são 640 e
+480 pixels. Em cada iteração,run_application lê um quadro, converte sua ordem de
+canais, cria umamp.Image e chama o detector com carimbo de tempo monotônico em
+milissegundos. Os recursos de câmera, janela, detector e arquivo de log são fechados
+mesmo se ocorrer uma exceção.
+3.4 Extração de características
+A funçãoextract_body_metrics constrói candidatos para os lados esquerdo e direito,
+verifica se os quatro pontos estão dentro do quadro e calcula uma pontuação conservadora.
+Do melhor lado são extraídas as coordenadas em pixels e calculadas três características. A
+estrutura BodyMetrics agrupa lado, visibilidade, ângulos e pontos usados no desenho.
+O tronco é medido e registrado, mas a versão atual não usa sua inclinação para
+aprovar ou reprovar a repetição. Essa decisão evita apresentar uma regra postural como
+se fosse clinicamente validada. Em uma continuação supervisionada por profissional, essa
+característica poderá apoiar mensagens configuráveis, por exemplo para indicar inclinação
+excessiva em uma fase específica.
+3.5 Calibração individual
+A classeCalibration contém os extremos pessoais e calcula os limiares intermediários.
+Se não existir arquivo salvo, valores ilustrativos de95◦sentado e 170◦em pé permitem
+iniciar o programa, mas o painel solicita calibração. Após duas amostras válidas, o
+arquivo data/calibracao_sts.json é criado. A calibração redefine filtros e contadores,
+impedindo que estados calculados com limites antigos sejam misturados aos novos.
+Uma única amostra por postura é suficiente para demonstrar a lógica, porém é
+sensível a ruído. A evolução recomendada é coletar uma janela de um a três segundos em
+cada extremo e usar uma estatística robusta, como a mediana.
+3.6 Saída e registro
+O painel mostra qualidade da pose, fase temporal, repetições, tentativas incompletas,
+ângulos, lado escolhido, visibilidade, mensagens de orientação, taxa estimada de quadros e
+estado da calibração. As teclas 1 e 2 registram as posturas de referência; Q ou Esc encerra
+a sessão.
+O SessionLogger cria outputs/sessoes/sessao_sts_AAAAMMDD_HHMMSS.csv.
+Cada linha contém carimbo de tempo, tempo decorrido, número do quadro, qualidade,
+posturas bruta e estável, fase, ângulos, contadores, duração da última repetição e evento.
+6
+
+--- PAGINA 10 ---
+Luiz Felipe Steinck Projeto Nível I/II
+A gravação pode ser desativada com–no-log. O projeto deliberadamente não salva
+imagens ou vídeo.
+4 Bibliotecas e organização do código
+4.1 Bibliotecas de terceiros
+Tabela 3: Dependências externas da execução principal.
+Biblioteca Versão
+verificada
+Responsabilidade no projeto
+Python 3.11.9 Linguagem, estruturas de dados, classes e controle da
+aplicação.
+MediaPipe 0.10.35 API Pose Landmarker, carregamento do modelo e esti-
+mação dos 33 marcos.
+OpenCV Contrib
+Python
+5.0.0.93 Webcam, conversão BGR–RGB, desenho, texto, janela
+e teclado.
+NumPy 2.4.6 Representação matricial dos quadros usada pelas bib-
+liotecas; não é importada diretamente pelo arquivo atual.
+Pandas, SciPy, scikit-learn e Joblib também foram instalados e tiveram suas importações
+verificadas no ambiente, mas ainda não são necessários para executar a versão baseada em
+regras. Eles ficam reservados para análise de sessões, filtragem adicional, treinamento e
+persistência de um futuro classificador. Essa distinção evita atribuir ao código atual uma
+etapa de aprendizado supervisionado que ainda não foi implementada.
+4.2 Biblioteca padrão do Python
+Tabela 4: Módulos da biblioteca padrão utilizados.
+Módulo Uso
+argparse Define opções de câmera, resolução, modelo, visibilidade, log e autoteste.
+csv Grava as observações numéricas de cada quadro.
+json Persiste e recupera a calibração individual.
+math Calcula normas,atan2 e conversão para graus.
+time Produz relógio monotônico, duração, FPS e timestamps do detector.
+dataclasses Agrupa métricas e parâmetros de calibração.
+datetime Nomeia sessões e registra data e hora legíveis.
+enum Representa posturas e fases com valores finitos explícitos.
+pathlib Resolve caminhos relativos à raiz do projeto.
+typing Documenta tipos flexíveis nas fronteiras com bibliotecas externas.
+7
+
+--- PAGINA 11 ---
+Luiz Felipe Steinck Projeto Nível I/II
+4.3 Funções e classes implementadas
+Tabela 5: Responsabilidade dos principais componentes do código.
+Componente Responsabilidade
+Posture Enumeração dos rótulos desconhecida, sentado, tran-
+sição e em pé.
+MotionPhase Enumeração dos estados temporais: aguardando, pronto,
+levantando, em pé e sentando.
+BodyMetrics Estrutura com lado, qualidade, três ângulos e pontos da
+cadeia selecionada.
+Calibration Armazena extremos, deriva limites, classifica posturas,
+valida e persiste calibração.
+StablePostureFilter Exige três rótulos consecutivos antes de atualizar a pos-
+tura estável.
+MetricSmoother Aplica EMA independente às métricas angulares.
+RepetitionTracker Executa a máquina de estados, conta repetições e trata
+tentativas incompletas/perdidas.
+SessionLogger Cria o CSV, escreve uma linha por quadro, força
+gravação periódica e fecha o arquivo.
+calculate_angle Implementa a Equação 3 para três pontos 2D.
+calculate_trunk_tilt Compara o eixo quadril–ombro com a vertical ascendente
+da imagem.
+landmark_confidence Retornaomínimoentrepresençaevisibilidadedomarco.
+extract_body_metrics Escolhe o lado mais confiável e calcula as características
+geométricas.
+draw_pose Desenha conexões e pontos corporais suficientemente
+visíveis.
+draw_selected_side Destaca a cadeia efetivamente usada nos cálculos.
+put_text Padroniza a escrita de textos com OpenCV.
+draw_dashboard Compõe informações e avisos no quadro exibido.
+open_camera Abre a câmera com fallback de backend e solicita a
+resolução.
+try_finalize_
+calibration
+Combina as duas amostras e rejeita amplitudes insufi-
+cientes.
+load_dependencies Importa dependências pesadas apenas na execução com
+câmera.
+run_application Orquestra captura, inferência, métricas, estados, inter-
+face e log.
+run_self_test Verifica ângulos conhecidos, classes e um ciclo temporal
+sintético.
+parse_args Constrói a interface de linha de comando.
+8
+
+--- PAGINA 12 ---
+Luiz Felipe Steinck Projeto Nível I/II
+Componente Responsabilidade
+main Seleciona autoteste ou aplicação e retorna o código de
+saída.
+4.4 Laço principal
+O laço principal implementa a ordem necessária para não misturar dados brutos, filtrados
+e estados. Em forma reduzida:
+1 success , frame = capture . read ()
+2 rg b _f ra me = cv2 . cvtColor ( frame , cv2 . C O L O R _ B G R 2 R G B )
+3 mp_image = mp . Image ( i m a g e _ f o r m a t = mp . I m a g e F o r m a t . SRGB , data = rg b_ fr am e )
+4 result = l a n d m a r k e r . d e t e c t _ f o r _ v i d e o ( mp_image , t i m e s t a m p _ m s )
+5
+6 metrics = e x t r a c t _ b o d y _ m e t r i c s ( result . p o s e _ l a n d m a r k s [0] , width , height ,
+7 args . m i n _ v i s i b i l i t y )
+8 metrics = smoother . update ( metrics )
+9 r a w _ p o s t u r e = c a l i b r a t i o n . classify ( metrics . knee_angle , metrics . hi p_ an gl e
+)
+10 s t a b l e _ p o s t u r e = p o s t u r e _ f i l t e r . update ( r a w _ p o s t u r e )
+11 feedback , event = tracker . update ( stable_posture , time . mo no t on ic () )
+12 logger . write (...)
+Listing 3: Sequência lógica simplificada do processamento por quadro.
+Na implementação real, cada fronteira contém verificações para quadro ausente,
+pose inexistente, corpo parcial, calibração inválida e encerramento seguro. Assim, o trecho
+da Listagem 3 descreve o caminho nominal, e não substitui o código completo distribuído
+com o projeto.
+9
+
+--- PAGINA 13 ---
+Luiz Felipe Steinck Projeto Nível I/II
+5 Resultados preliminares e verificação
+5.1 Registro visual da demonstração
+Os três campos da Figura 3 foram preparados para documentar a sequência completa do
+exercício em enquadramento lateral. No Overleaf, os espaços são substituídos automatica-
+mente ao enviar imagens com os nomes indicados. As fotografias devem mostrar o corpo
+inteiro, incluindo pés e cadeira, mantendo a câmera fixa durante a sequência.
+ESPAÇO PARA
+FOTO
+Postura inicial: sentado
+Arquivo: foto_sentado.jpg
+(a) Sentado
+ESPAÇO PARA
+FOTO
+Fase de subida ou descida
+Arquivo: foto_transicao.jpg
+(b) T ransição
+ESPAÇO PARA
+FOTO
+Extensão final: em pé
+Arquivo: foto_em_pe.jpg
+(c) Em pé
+Figura 3: Espaços reservados para demonstrar as três fases principais do exercício.
+5.2 Ambiente e verificações concluídas
+O ambiente virtual foi criado com Python 3.11.9. As importações de MediaPipe, OpenCV,
+NumPy e dos pacotes reservados à classificação foram executadas sem erro;pip check não
+encontrou requisitos quebrados. O modelopose_landmarker_lite.task, com 5.777.746
+bytes, foi carregado com sucesso. A webcam foi aberta em 640×480 pixels.
+A linha de base de detecção de pose foi executada em tempo real. Na captura
+preliminar da Figura 4, o painel indicou 15,2 quadros por segundo e desenhou os marcos
+visíveis. O usuário estava sentado e parte do corpo estava fora do quadro; portanto, essa
+imagem confirma o funcionamento da detecção, mas também evidencia por que a aplicação
+de sentar e levantar exige enquadramento lateral do corpo inteiro. A taxa mostrada é uma
+observação pontual da linha de base, não umbenchmark controlado da versão final.
+10
+
+--- PAGINA 14 ---
+Luiz Felipe Steinck Projeto Nível I/II
+Figura 4: Execução preliminar do detector de pose fornecida durante o desenvolvimento.
+O autoteste do monitor foi executado com o comando
+python .\ src \ m o n i t o r a r _ s e n t a r _ l e v a n t a r . py -- self - test
+e produziu:
+AU T OT ES TE OK
+- calculo de angulos : OK
+- c l a s s i f i c a c a o de fases : OK
+- maquina de estados e contagem : OK
+Listing 4: Saída observada do autoteste.
+Esse teste verifica dois ângulos conhecidos (90◦e 180◦), exemplos das três classes e
+uma sequência sintética que deve resultar em uma repetição, nenhuma tentativa incompleta
+e duração definida. Ele confirma a coerência interna dessas unidades, mas não mede a
+precisão dos marcos do MediaPipe nem a validade do sistema em condições reais.
+5.3 Registro visual dos resultados
+A Figura 5 reserva quatro evidências que deverão ser obtidas durante a demonstração final.
+Esse conjunto é mais informativo do que fotografias genéricas: mostra a calibração, a
+conclusão de um ciclo, o tratamento de uma situação adversa e o arquivo numérico gerado
+pelo programa.
+11
+
+--- PAGINA 15 ---
+Luiz Felipe Steinck Projeto Nível I/II
+ESPAÇO PARA FOTO
+Painel após calibração sentado/em pé
+Arquivo: resultado_calibracao.png
+(a) Calibração concluída
+ESPAÇO PARA FOTO
+Painel indicando repetição concluída
+Arquivo: resultado_repeticao.png
+(b) Contagem de repetição
+ESPAÇO PARA FOTO
+Perda de pose ou tentativa incompleta
+Arquivo: resultado_evento.png
+(c) T ratamento de evento
+ESPAÇO PARA FOTO
+Trecho do CSV ou gráfico da sessão
+Arquivo: resultado_csv.png
+(d) Registro numérico
+Figura 5: Espaços reservados para as principais evidências dos resultados.
+As legendas devem ser ajustadas após os ensaios para informar, quando disponível,
+resolução, taxa média de quadros, número de repetições de referência, contagem automática
+e eventuais erros. Não se deve preencher esta parte com desempenho estimado ou não
+medido.
+5.4 O que ainda não foi medido
+Não há, nesta versão do relatório, resultados de séries completas de sentar e levantar
+executadas com o novo monitor, comparação com anotação manual, erro angular em
+relação a instrumento de referência, sensibilidade da contagem, testes com diferentes
+cadeiras/iluminações ou estudo com pessoas idosas. A ausência desses resultados é
+explicitada para impedir que uma demonstração técnica seja confundida com validação
+clínica.
+5.5 Protocolo proposto para a próxima avaliação
+Uma validação técnica inicial pode ser feita com adultos saudáveis, ambiente seguro e
+consentimento, antes de envolver a população-alvo. Sugere-se:
+1. posicionar a câmera a aproximadamente 90◦ do plano sagital, com corpo e cadeira
+completos no quadro;
+2. registrar distância, altura da câmera, resolução e condições de iluminação;
+3. calibrar sentado e em pé para cada participante;
+4. executar três séries curtas e controladas, com contagem manual independente;
+5. anotar início e fim de cada ciclo, perdas de pose e repetições incompletas;
+12
+
+--- PAGINA 16 ---
+Luiz Felipe Steinck Projeto Nível I/II
+6. comparar contagem automática e manual por acurácia, falsos positivos e falsos negativos;
+7. comparar eventos temporais por erro absoluto e analisar a dispersão dos ângulos; e
+8. repetir parte do protocolo variando lado, distância e iluminação para testar robustez.
+Se houver coleta de vídeo apenas para validação, ela deve ser opcional, consentida,
+protegida e eliminada conforme o protocolo aprovado. A aplicação padrão deve continuar
+registrando apenas dados numéricos.
+6 Limitações, segurança e aspectos éticos
+6.1 Limitações técnicas
+Estudos de estimação de pose em reabilitação mostram que ponto de vista, exercício,
+oclusões e método influenciam os erros [1]. Um estudo recente de STS com MediaPipe e uma
+câmera encontrou resultados promissores para quadril e joelho, mas desempenho inferior
+no tornozelo e reconheceu limitações relacionadas a iluminação, fundo e detecção articular
+[2]. Esses resultados apoiam a viabilidade do tema, mas não podem ser transferidos
+automaticamente para este sistema, hardware ou população.
+As limitações principais do protótipo são:
+• projeção 2D de um movimento tridimensional e sensibilidade ao ângulo da câmera;
+• oclusão de quadril ou perna pela cadeira, roupas ou objetos;
+• modelo Lite priorizando baixo custo computacional;
+• calibração atual baseada em uma amostra de cada extremo;
+• limiares de 45% e 75% ainda não ajustados por conjunto de dados;
+• ausência de compensação explícita da perspectiva e da inclinação da câmera;
+• reconhecimento de apenas uma pessoa e um exercício;
+• ausência de validação por especialista ou instrumento de referência; e
+• mensagens visuais sem recursos de acessibilidade, áudio ou modo para baixa visão.
+6.2 Uso responsável
+O software não deve diagnosticar, prescrever tratamento, decidir se um movimento é clini-
+camente correto ou autorizar exercício sem supervisão. Pessoas idosas podem apresentar
+condições cardiovasculares, neurológicas, osteomusculares ou risco de queda que não são
+inferíveis de uma webcam. Qualquer protocolo real deve ser definido por fisioterapeuta
+ou profissional habilitado, prever cadeira estável, espaço livre, apoio quando indicado e
+interrupção diante de dor, tontura, falta de ar ou instabilidade.
+O termo “correção postural” deve ser usado com cautela. Nesta etapa, o sistema
+fornece feedback operacional sobre enquadramento, fase e completude do ciclo. Regras
+clínicas sobre alinhamento, velocidade ou amplitude somente devem ser adicionadas após
+definição por especialista e validação apropriada.
+6.3 Privacidade
+O desenho aplica minimização de dados: o fluxo de imagem existe em memória para
+a inferência e exibição, mas não é salvo; o CSV contém apenas grandezas derivadas e
+eventos. Ainda assim, datas, horários e padrões de movimento podem ser dados pessoais
+quando associados a uma pessoa. Uma versão aplicada deve informar claramente o que é
+13
+
+--- PAGINA 17 ---
+Luiz Felipe Steinck Projeto Nível I/II
+coletado, permitir desativar o registro, limitar acesso e retenção e não reutilizar os dados
+para treinamento sem consentimento específico.
+7 Plano de evolução
+A continuidade mais segura é incremental:
+1. validação funcional:executar ciclos completos e confirmar interface, CSV, calibração
+e tratamento de perdas;
+2. métricas quantitativas:comparar contagem e eventos com anotação manual em
+vídeos controlados;
+3. calibração robusta:substituir amostra única pela mediana de uma janela e armazenar
+variabilidade;
+4. regras configuráveis:externalizar limites e mensagens para um arquivo revisável
+por especialista;
+5. classificação supervisionada:formar um conjunto rotulado com ângulos, velocidades
+e proporções normalizadas, comparar regras, KNN e SVM e usar separação por
+participante para reduzir vazamento de dados;
+6. avaliação de usabilidade e acessibilidade:testar legibilidade, áudio opcional,
+instruções simples e operação por cuidador; e
+7. validação aplicada:somente após revisão profissional, análise ética e protocolo de
+segurança, avaliar a população-alvo.
+O classificador supervisionado não deve ser treinado apenas com quadros aleatoria-
+mente separados do mesmo vídeo: quadros vizinhos são muito semelhantes e produziriam
+uma estimativa excessivamente otimista. A divisão deve ocorrer por participante ou por
+sessão inteira. As características candidatas incluem ângulos, derivadas angulares, duração
+das fases, visibilidade e razões geométricas normalizadas. A regra atual permanece uma
+linha de base interpretável contra a qual métodos aprendidos podem ser comparados.
+8 Conclusão
+Foi estruturado um protótipo viável para monitorar o exercício de sentar e levantar com
+ferramentas gratuitas e hardware comum. A solução converte vídeo em marcos corporais,
+extrai ângulos, aplica filtragem, classifica posturas calibradas e interpreta a sequência
+por máquina de estados. A arquitetura atende ao núcleo acadêmico de processamento de
+imagens, extração de características e reconhecimento de padrões, com interesse social
+compatível com o plano de ensino.
+As verificações já realizadas demonstram que ambiente, câmera, modelo e unidades
+lógicas fundamentais funcionam. Ao mesmo tempo, o trabalho preserva uma separação
+essencial entre funcionamento de software e evidência clínica. A contribuição atual é
+um instrumento acadêmico de monitoramento e coleta de dados. A próxima etapa deve
+produzir resultados quantitativos controlados e, somente depois, considerar feedback
+postural definido com participação profissional.
+14
+
+--- PAGINA 18 ---
+Luiz Felipe Steinck Projeto Nível I/II
+Referências
+[1] Rafael Aguilar-Ortega, Rafael Berral-Soler, Ignacio Jiménez-Velasco, Francisco J.
+Romero-Ramírez, Manuel García-Marín, Jesús Zafra-Palma, Rafael Muñoz-Salinas,
+Rafael Medina-Carnicer, and Manuel J. Marín-Jiménez. Uco physical rehabilitation:
+New dataset and study of human pose estimation methods on physical rehabilitation
+exercises. Sensors, 23(21):8862, 2023. doi: 10.3390/s23218862.
+[2] Suleyman Akturk, Fatma Betul Derdiyok, and Kasim Serbest. Markerless joint
+angle estimation using mediapipe with a rapid setup for joint moment calculation.
+Multimedia Tools and Applications, 85:38, 2026. doi: 10.1007/s11042-026-21256-z.
+[3] Valentin Bazarevsky, Ivan Grishchenko, Karthik Raveendran, Tyler Zhu, Fan Zhang,
+and Matthias Grundmann. Blazepose: On-device real-time body pose tracking.arXiv
+preprint arXiv:2006.10204, 2020. doi: 10.48550/arXiv.2006.10204. URL https:
+//arxiv.org/abs/2006.10204.
+[4] Centers for Disease Control and Prevention. Steadi clinical resources: 30-
+second chair stand assessment, 2025. URL https://www.cdc.gov/steadi/hcp/
+clinical-resources/index.html.
+[5] Rafael C. Gonzalez and Richard E. Woods.Digital Image Processing. Pearson, 4
+edition, 2018.
+[6] Google AI Edge. Pose landmark detection guide: Task details and mod-
+els, 2026. URL https://developers.google.com/edge/mediapipe/solutions/
+vision/pose_landmarker.
+[7] Google AI Edge. Pose landmark detection guide for python, 2026. URL
+https://developers.google.com/edge/mediapipe/solutions/vision/pose_
+landmarker/python.
+[8] C. Jessie Jones, Roberta E. Rikli, and William C. Beam. A 30-s chair-stand test as a
+measureoflowerbodystrengthincommunity-residingolderadults. Research Quarterly
+for Exercise and Sport , 70(2):113–119, 1999. doi: 10.1080/02701367.1999.10608028.
+[9] OpenCV. Getting started with videos, 2025. URLhttps://docs.opencv.org/4.12.
+0/dd/d43/tutorial_py_video_display.html.
+[10] Universidade Federal de Santa Catarina. Planos de ensino 2026.2: Eel7815 e eel7825 –
+projeto nível i/ii em controle e processamento de sinais, 2026. Centro Tecnológico,
+Departamento de Engenharia Elétrica e Eletrônica. Professor ministrante: Joceli
+Mayer.
+[11] World Health Organization. WHO Guidelines on Physical Activity and Sedentary
+Behaviour. World Health Organization, Geneva, 2020. ISBN 978-92-4-001512-8. URL
+https://www.who.int/publications/i/item/9789240015128.
+15
+
+--- PAGINA 19 ---
+Luiz Felipe Steinck Projeto Nível I/II
+A Comandos de execução
+Na raiz do projeto, com o ambiente virtual ativo:
+# V e r i f i c a c a o logica sem webcam
+python .\ src \ m o n i t o r a r _ s e n t a r _ l e v a n t a r . py -- self - test
+# Execucao padrao
+python .\ src \ m o n i t o r a r _ s e n t a r _ l e v a n t a r . py
+# Execucao sem gravacao CSV
+python .\ src \ m o n i t o r a r _ s e n t a r _ l e v a n t a r . py -- no - log
+# Exemplo com outra camera e r es ol uc ao
+python .\ src \ m o n i t o r a r _ s e n t a r _ l e v a n t a r . py -- camera 1 -- width 1280 --
+height 720
+B Estrutura de arquivos
+p r o j e t o _ c l a s s i f i c a c a o _ p o s e s /
+| - - . venv /
+| - - data /
+| ‘-- c a l i b r a c a o _ s t s . json # criado apos c a l i b r a c a o
+| - - models /
+| ‘-- p o s e _ l a n d m a r k e r _ l i t e . task
+| - - outputs /
+| ‘-- sessoes / # arquivos CSV
+| - - src /
+| | - - d e t e c t a r _ p o s e . py
+| ‘-- m o n i t o r a r _ s e n t a r _ l e v a n t a r . py
+‘-- requirements - lock . txt
+16
