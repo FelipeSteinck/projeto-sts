@@ -1,4 +1,6 @@
 # CONTEXTO PARA CONTINUIDADE NO CODEX — Projeto STS
+
+> **Atualização posterior ao contexto recuperado, 22/10/2026:** o usuário informou que o professor exige dois projetos e duas propostas diferentes. Confirmou STS com classificadores treinados como **Nível II/EEL7825**. O Nível I será outro projeto, definido após concluir o Nível II. O fluxo supervisionado foi implementado e verificado com dados sintéticos; vídeos próprios e avaliação humana ainda não existem. Consulte `SEPARACAO_NIVEIS.md`, `SUPERVISIONADO_NIVEL_II.md` e `VERIFICACAO_MIGRACAO.md`. O restante deste arquivo é o contexto histórico preservado, não o estado atual completo.
 Atualizado em 22/10/2026. Leia este documento antes de alterar o projeto.
 
 ## Como usar
